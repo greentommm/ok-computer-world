@@ -1,5 +1,4 @@
 ---
-// --- OK Computer トラックリストと断片的なキーワード ---
 const fragments = [
   { text: "01 AIRBAG", color: "var(--white)", top: "5%", left: "10%", size: "18px", font: "Helvetica Neue", weight: "bold" },
   { text: "02 PARANOID ANDROID", color: "var(--red)", top: "15%", left: "15%", size: "22px", weight: "bold" },
@@ -21,7 +20,6 @@ const fragments = [
   { text: "LOST_CHILD", color: "var(--white-dim)", top: "68%", left: "85%", size: "14px" }
 ];
 
-// --- 漂流するブロックのテキスト（歌詞とデータ） ---
 const block1Text = `
 [ A I R B A G ]
 IN THE NEXT WORLD WAR
@@ -56,7 +54,15 @@ LENGTH: 53:21
 STATUS: ALIENATED
 `;
 
-const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radiohead-ok-computer-notre-dame-cathedral-the-bends-radiohead-ok-computer-album-cathedral-artwork.png";
+const secretProjectText = `
+[ OVERRIDE GRANTED ]
+> RECOVERING HIDDEN ARCHIVE...
+> FILE: TCHOCKY_001
+> THEME: MEETING PEOPLE IS EASY
+> MESSAGE: "JUST BECAUSE YOU FEEL IT, 
+  DOESN'T MEAN IT'S THERE."
+> STATUS: WE HOPE THAT YOU CHOKE.
+`;
 ---
 
 <html lang="ja">
@@ -80,9 +86,15 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
         background-color: var(--bg-blue);
         color: var(--white);
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        transition: filter 0.05s, transform 0.05s;
       }
 
-      #bg-ascii {
+      body.glitch-active {
+        filter: invert(100%) hue-rotate(90deg) contrast(200%);
+        transform: translate(4px, -4px) skewX(2deg);
+      }
+
+      #bg-ascii-canvas {
         position: fixed;
         top: 0;
         left: 0;
@@ -91,13 +103,7 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
         z-index: -2;
         margin: 0;
         padding: 0;
-        overflow: hidden;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 14px;
-        line-height: 1.2;
-        color: rgba(255, 255, 255, 0.15);
         pointer-events: none;
-        white-space: pre;
       }
 
       .texture-overlay {
@@ -139,27 +145,20 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
       #block3 { top: 35%; left: 80%; }
       #system-log { top: 85%; left: 65%; }
 
+      #secret-block { 
+        display: none; 
+        top: 50%; left: 40%; 
+        border: 2px solid var(--white); 
+        background: var(--bg-blue); 
+        padding: 10px;
+        box-shadow: 0 0 20px var(--white);
+      }
+
       #block1 pre { color: var(--white); }
       #block2 pre { color: var(--yellow); }
       #block3 pre { color: var(--red); }
       #system-log pre { color: var(--white-dim); }
-
-      .center-image {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        border: 2px solid var(--white);
-        z-index: 10;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        pointer-events: none;
-      }
-      .center-image img {
-        width: 300px;
-        height: auto;
-        display: block;
-        opacity: 0.9;
-        filter: invert(100%) contrast(150%);
-      }
+      #secret-block pre { color: var(--white); text-shadow: 0 0 5px var(--white); }
 
       .fragment {
         position: absolute;
@@ -175,20 +174,51 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
         border-radius: 50%;
         pointer-events: none;
         z-index: 9999;
-        box-shadow: 0 0 8px var(--yellow);
+        box-shadow: 0 0 15px var(--yellow);
+      }
+
+      #terminal-hint {
+        position: fixed;
+        bottom: 20px;
+        right: 25px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        z-index: 100;
+        font-weight: bold;
+        animation: blink 2s infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 0.8; }
+      }
+
+      .color-ripple {
+        position: fixed;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        mix-blend-mode: screen; 
+        animation: ripple-expand 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        z-index: -1;
+      }
+
+      @keyframes ripple-expand {
+        0% { width: 0; height: 0; opacity: 0.8; }
+        100% { width: 250vw; height: 250vw; opacity: 0; }
       }
     </style>
   </head>
   <body>
 
-    <pre id="bg-ascii"></pre>
+    <canvas id="bg-ascii-canvas"></canvas>
     <div class="texture-overlay"></div>
 
     <canvas id="graph-canvas"></canvas>
 
-    <div class="center-image">
-      <img src={centerImageUrl} alt="OK Computer Artwork" />
-    </div>
+    <div id="terminal-hint">&gt; type "fitter"</div>
 
     {fragments.map(f => (
       <div 
@@ -203,25 +233,110 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
     <div id="block2" class="floating-item"><pre>{block2Text}</pre></div>
     <div id="block3" class="floating-item"><pre>{block3Text}</pre></div>
     <div id="system-log" class="floating-item"><pre>{systemLogText}</pre></div>
+    
+    <div id="secret-block" class="floating-item"><pre>{secretProjectText}</pre></div>
 
     <div class="cursor-follower"></div>
 
     <script>
-      const blockElements = document.querySelectorAll('.floating-item');
-      const blocks = Array.from(blockElements).map(el => {
-        return {
-          el: el,
-          x: el.offsetLeft,
-          y: el.offsetTop,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: (Math.random() - 0.5) * 0.4,
-          isDragging: false
-        };
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      let audioCtx;
+      let ripples = [];
+      const rippleColors = ['rgba(255, 0, 0, 0.7)', 'rgba(255, 255, 0, 0.7)', 'rgba(0, 255, 255, 0.7)'];
+
+      function playGlitchSound() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(Math.random() * 800 + 200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      }
+
+      // ★ 追加：ロボットボイスの関数
+      function playRobotVoice() {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const text = "Fitter, happier, more productive, comfortable, not drinking too much, regular exercise at the gym.";
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.pitch = 0.1; // 極端に低く
+          utterance.rate = 0.7;  // 無機質に遅く
+          utterance.lang = 'en-GB'; // イギリス英語
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+
+      document.body.addEventListener('mousedown', (e) => {
+        document.body.classList.add('glitch-active');
+        playGlitchSound();
+        setTimeout(() => { document.body.classList.remove('glitch-active'); }, 80);
+
+        const colorRipple = document.createElement('div');
+        colorRipple.className = 'color-ripple';
+        colorRipple.style.left = `${e.clientX}px`;
+        colorRipple.style.top = `${e.clientY}px`;
+        const randomColor = rippleColors[Math.floor(Math.random() * rippleColors.length)];
+        colorRipple.style.background = `radial-gradient(circle, ${randomColor} 0%, transparent 60%)`;
+        document.body.appendChild(colorRipple);
+        setTimeout(() => { colorRipple.remove(); }, 1200);
+
+        ripples.push({
+          x: e.clientX / 8.4,
+          y: e.clientY / 16.8,
+          time: 0
+        });
+        if (ripples.length > 5) ripples.shift();
       });
 
-      blocks.forEach(block => {
-        let startX, startY, initialLeft, initialTop;
+      let keyBuffer = '';
+      const secretCode = 'fitter';
+      window.addEventListener('keydown', (e) => {
+        keyBuffer += e.key.toLowerCase();
+        if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
+        
+        if (keyBuffer.includes(secretCode)) {
+          const secretBlock = document.getElementById('secret-block');
+          const hint = document.getElementById('terminal-hint');
+          
+          if (secretBlock.style.display !== 'block') {
+            secretBlock.style.display = 'block';
+            if (hint) {
+              hint.textContent = "> ACCESS GRANTED.";
+              hint.style.animation = "none";
+              hint.style.opacity = "1";
+              setTimeout(() => { hint.style.opacity = "0"; }, 2000);
+            }
+            blocks.push({
+              el: secretBlock, x: window.innerWidth / 2 - 100, y: window.innerHeight / 2,
+              vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, isDragging: false
+            });
+            setupDrag(blocks[blocks.length - 1]);
+            keyBuffer = ''; 
+            playGlitchSound(); 
+            playRobotVoice(); // ★ ここで音声を再生
+          }
+        }
+      });
 
+      const currentHour = new Date().getHours();
+      const isNightTime = (currentHour >= 18 || currentHour < 6);
+      const baseSpeed = isNightTime ? 0.08 : 0.04;
+
+      const blockElements = document.querySelectorAll('.floating-item:not(#secret-block)');
+      const blocks = Array.from(blockElements).map(el => ({
+        el: el, x: el.offsetLeft, y: el.offsetTop,
+        vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, isDragging: false
+      }));
+
+      function setupDrag(block) {
+        let startX, startY, initialLeft, initialTop;
         block.el.addEventListener('mousedown', (e) => {
           block.isDragging = true;
           startX = e.clientX; startY = e.clientY;
@@ -229,7 +344,6 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
           blocks.forEach(b => b.el.style.zIndex = "20");
           block.el.style.zIndex = "1000";
         });
-
         document.addEventListener('mousemove', (e) => {
           if (!block.isDragging) return;
           block.x = initialLeft + (e.clientX - startX);
@@ -237,25 +351,31 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
           block.el.style.left = `${block.x}px`;
           block.el.style.top = `${block.y}px`;
         });
-
         document.addEventListener('mouseup', () => block.isDragging = false);
-      });
+      }
+      blocks.forEach(setupDrag);
 
       const canvas = document.getElementById('graph-canvas');
       const ctx = canvas.getContext('2d');
       const follower = document.querySelector('.cursor-follower');
-      const bgAsciiPre = document.getElementById('bg-ascii');
       
+      const bgAsciiCanvas = document.getElementById('bg-ascii-canvas');
+      const asciiCtx = bgAsciiCanvas.getContext('2d');
+
       let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
       let followerX = mouseX, followerY = mouseY;
       window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
 
-      let bgCols = 0;
-      let bgRows = 0;
-
+      let bgCols = 0; let bgRows = 0;
       function resize() { 
         canvas.width = window.innerWidth; 
         canvas.height = window.innerHeight; 
+        bgAsciiCanvas.width = window.innerWidth;
+        bgAsciiCanvas.height = window.innerHeight;
+        
+        asciiCtx.font = "bold 14px 'Courier New', Courier, monospace";
+        asciiCtx.textBaseline = "top";
+
         bgCols = Math.floor(window.innerWidth / 8.4) + 1;
         bgRows = Math.floor(window.innerHeight / 16.8) + 1;
       }
@@ -263,34 +383,77 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
       resize();
 
       const nodes = Array.from({ length: 30 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2
+        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2
       }));
 
-      const bgCharsArr = [' ', ' ', ' ', ' ', '.', '-', '~', '+', '=', 'x', 'X', '#'];
+      const bgCharsArr = [' ', '.', '-', '+', '*', 'x', '%', '#', '&', '@'];
       let time = 0;
       let frameCount = 0;
 
       function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        time += 0.02; 
-        frameCount++;
         
-        if (frameCount % 3 === 0) {
-          let bgStr = '';
+        time += baseSpeed; 
+        frameCount++;
+
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          ripples[i].time += 2.5; 
+          if (ripples[i].time > 100) ripples.splice(i, 1);
+        }
+        
+        if (frameCount % 2 === 0) {
+          asciiCtx.clearRect(0, 0, bgAsciiCanvas.width, bgAsciiCanvas.height);
+
           for (let y = 0; y < bgRows; y++) {
             for (let x = 0; x < bgCols; x++) {
-              const val = (Math.sin(x * 0.04 + y * 0.08 + time) + Math.cos(x * 0.06 - time * 0.5)) / 2;
-              const normalized = (val + 1) / 2; 
-              const charIndex = Math.floor(normalized * (bgCharsArr.length - 1));
-              const safeIndex = Math.max(0, Math.min(bgCharsArr.length - 1, charIndex));
-              bgStr += bgCharsArr[safeIndex];
+              
+              let rippleIntensity = 0;
+              for (let i = 0; i < ripples.length; i++) {
+                const r = ripples[i];
+                const dx = x - r.x;
+                const dy = y - r.y;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                const diff = Math.abs(d - r.time);
+
+                if (diff < 12) {
+                  const force = (12 - diff) / 12; 
+                  rippleIntensity += force * 2.0 * (1 - r.time / 100); 
+                }
+              }
+
+              const cx = x - bgCols / 2; 
+              const cy = y - bgRows / 2;
+              const distCenter = Math.sqrt(cx * cx + cy * cy);
+
+              const val = (
+                Math.sin(x * 0.12 + time + rippleIntensity * 5) + 
+                Math.sin(y * 0.15 - time * 0.8 + rippleIntensity * 5) + 
+                Math.sin(distCenter * 0.1 + time * 1.5 - rippleIntensity * 5)
+              ) / 3; 
+
+              let normalized = (val + 1) / 2; 
+
+              let rColor = 100 + normalized * 155;
+              let gColor = 150 + normalized * 105;
+              let bColor = 255;
+              let alpha = 0.05 + normalized * 0.4;
+
+              if (rippleIntensity > 0.1) {
+                rColor = 255;
+                gColor = 255 - (rippleIntensity * 100); 
+                bColor = 255 - (rippleIntensity * 255); 
+                alpha = Math.min(1.0, alpha + rippleIntensity); 
+              }
+
+              let charNormalized = Math.min(1, Math.max(0, normalized + rippleIntensity * 0.8));
+              const charIndex = Math.floor(charNormalized * (bgCharsArr.length - 1));
+              const char = bgCharsArr[Math.max(0, Math.min(bgCharsArr.length - 1, charIndex))];
+
+              asciiCtx.fillStyle = `rgba(${rColor}, ${gColor}, ${bColor}, ${alpha})`;
+              asciiCtx.fillText(char, x * 8.4, y * 16.8);
             }
-            bgStr += '\n';
           }
-          bgAsciiPre.textContent = bgStr;
         }
         
         followerX += (mouseX - followerX) * 0.1;
@@ -315,14 +478,16 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
 
         const allNodes = [...nodes, ...windowNodes, { x: followerX, y: followerY, isCursor: true }];
 
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+
         nodes.forEach(n => {
           n.x += n.vx; n.y += n.vy;
           if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
           if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
-          
           ctx.beginPath();
-          ctx.arc(n.x, n.y, 1.2, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.arc(n.x, n.y, 1.5, 0, Math.PI * 2); 
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; 
           ctx.fill();
         });
 
@@ -331,7 +496,6 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
             const dx = n1.x - n2.x;
             const dy = n1.y - n2.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            
             const threshold = (n1.isWindow || n2.isWindow) ? 220 : 120;
 
             if (dist < threshold) {
@@ -339,16 +503,20 @@ const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radi
               ctx.beginPath();
               ctx.moveTo(n1.x, n1.y);
               ctx.lineTo(n2.x, n2.y);
-              
-              ctx.strokeStyle = (n1.isWindow || n2.isWindow) 
-                ? `rgba(255, 255, 255, ${opacity * 0.9})`
-                : `rgba(255, 255, 255, ${opacity * 0.4})`;
-              ctx.lineWidth = (n1.isWindow || n2.isWindow) ? 2.5 : 1.0;
+              if (n1.isWindow || n2.isWindow) {
+                ctx.shadowBlur = 15;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`; 
+                ctx.lineWidth = 3.0; 
+              } else {
+                ctx.shadowBlur = 5;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
+                ctx.lineWidth = 1.2;
+              }
               ctx.stroke();
             }
           });
         });
-
+        ctx.shadowBlur = 0;
         requestAnimationFrame(animate);
       }
       animate();
