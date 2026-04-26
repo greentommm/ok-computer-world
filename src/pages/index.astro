@@ -1,0 +1,357 @@
+---
+// --- OK Computer トラックリストと断片的なキーワード ---
+const fragments = [
+  { text: "01 AIRBAG", color: "var(--white)", top: "5%", left: "10%", size: "18px", font: "Helvetica Neue", weight: "bold" },
+  { text: "02 PARANOID ANDROID", color: "var(--red)", top: "15%", left: "15%", size: "22px", weight: "bold" },
+  { text: "03 SUBTERRANEAN HOMESICK ALIEN", color: "var(--white-dim)", top: "25%", left: "50%", size: "12px" },
+  { text: "04 EXIT MUSIC (FOR A FILM)", color: "var(--yellow)", top: "35%", left: "5%", size: "14px" },
+  { text: "05 LET DOWN", color: "var(--white)", top: "45%", left: "75%", size: "18px", weight: "bold" },
+  { text: "06 KARMA POLICE", color: "var(--white)", top: "55%", left: "12%", size: "20px" },
+  { text: "07 FITTER HAPPIER", color: "var(--red)", top: "65%", left: "40%", size: "24px", weight: "bold" },
+  { text: "08 ELECTIONEERING", color: "var(--yellow)", top: "75%", left: "20%", size: "16px" },
+  { text: "09 CLIMBING UP THE WALLS", color: "var(--white-dim)", top: "85%", left: "60%", size: "14px" },
+  { text: "10 NO SURPRISES", color: "var(--white)", top: "12%", left: "70%", size: "18px" },
+  { text: "11 LUCKY", color: "var(--yellow)", top: "50%", left: "30%", size: "14px" },
+  { text: "12 THE TOURIST", color: "var(--white-dim)", top: "90%", left: "80%", size: "12px" },
+  
+  { text: "AGAINST MODERN CONSUMERISM", color: "var(--red)", top: "30%", left: "65%", size: "10px" },
+  { text: "1997_PARLOPHONE", color: "var(--white-dim)", top: "8%", left: "85%", size: "12px" },
+  { text: "STANLEY DONWOOD", color: "var(--yellow)", top: "80%", left: "5%", size: "10px" },
+  { text: "TRANSPORT_MOTORWAYS", color: "var(--white)", top: "40%", left: "40%", size: "12px" },
+  { text: "LOST_CHILD", color: "var(--white-dim)", top: "68%", left: "85%", size: "14px" }
+];
+
+// --- 漂流するブロックのテキスト（歌詞とデータ） ---
+const block1Text = `
+[ A I R B A G ]
+IN THE NEXT WORLD WAR
+IN A JACKKNIFED JUGGERNAUT
+I AM BORN AGAIN
+`;
+
+const block2Text = `
+[ P A R A N O I D  A N D R O I D ]
+AMBITION MAKES YOU LOOK PRETTY UGLY
+KICKING AND SQUEALING GUCCI LITTLE PIGGY
+YOU DON'T REMEMBER
+WHY DON'T YOU REMEMBER MY NAME?
+`;
+
+const block3Text = `
+[ F I T T E R  H A P P I E R ]
+MORE PRODUCTIVE.
+COMFORTABLE.
+NOT DRINKING TOO MUCH.
+REGULAR EXERCISE AT THE GYM.
+GETTING ON BETTER WITH YOUR 
+ASSOCIATE EMPLOYEE CONTEMPORARIES.
+`;
+
+const systemLogText = `
+[ OK COMPUTER - SYSTEM INFO ]
+RELEASE: 21 MAY 1997
+STUDIO: ST CATHERINE'S COURT
+PRODUCER: NIGEL GODRICH
+LENGTH: 53:21
+STATUS: ALIENATED
+`;
+
+const centerImageUrl = "https://w7.pngwing.com/pngs/388/750/png-transparent-radiohead-ok-computer-notre-dame-cathedral-the-bends-radiohead-ok-computer-album-cathedral-artwork.png";
+---
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>OK_COMPUTER_WORLD | Fatal Blue</title>
+    <style>
+      :root {
+        --bg-blue: #0000FF; 
+        --white: #FFFFFF;
+        --white-dim: rgba(255, 255, 255, 0.5);
+        --yellow: #FFFF00;
+        --red: #FF0000;
+      }
+
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background-color: var(--bg-blue);
+        color: var(--white);
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      }
+
+      #bg-ascii {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -2;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        line-height: 1.2;
+        color: rgba(255, 255, 255, 0.15);
+        pointer-events: none;
+        white-space: pre;
+      }
+
+      .texture-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        background-image: 
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 100%),
+          url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIHZpZXdCb3g9IjAgMCA0IDQiPjxnIGZpbGwtcnVsZT0iZXZlbm9kZCI+PGcgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjA1Ij48cGF0aCBkPSJNMCAwaDF2MUgwVjB6TTEgMWgxdjFIMVYxeiIvPjwvZz48L2c+PC9zdmc+');
+        background-size: 100% 100%, 4px 4px;
+      }
+
+      #graph-canvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .floating-item {
+        position: absolute;
+        cursor: grab;
+        user-select: none;
+        z-index: 20;
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+
+      .floating-item:active { cursor: grabbing; }
+
+      pre { margin: 0; font-size: 12px; line-height: 1.4; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+      
+      #block1 { top: 25%; left: 60%; }
+      #block2 { top: 70%; left: 5%; }
+      #block3 { top: 35%; left: 80%; }
+      #system-log { top: 85%; left: 65%; }
+
+      #block1 pre { color: var(--white); }
+      #block2 pre { color: var(--yellow); }
+      #block3 pre { color: var(--red); }
+      #system-log pre { color: var(--white-dim); }
+
+      .center-image {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px solid var(--white);
+        z-index: 10;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+      .center-image img {
+        width: 300px;
+        height: auto;
+        display: block;
+        opacity: 0.9;
+        filter: invert(100%) contrast(150%);
+      }
+
+      .fragment {
+        position: absolute;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      .cursor-follower {
+        position: fixed;
+        width: 6px; height: 6px;
+        background-color: var(--yellow);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        box-shadow: 0 0 8px var(--yellow);
+      }
+    </style>
+  </head>
+  <body>
+
+    <pre id="bg-ascii"></pre>
+    <div class="texture-overlay"></div>
+
+    <canvas id="graph-canvas"></canvas>
+
+    <div class="center-image">
+      <img src={centerImageUrl} alt="OK Computer Artwork" />
+    </div>
+
+    {fragments.map(f => (
+      <div 
+        class="fragment" 
+        style={`color: ${f.color}; top: ${f.top}; left: ${f.left}; font-size: ${f.size}; font-family: ${f.font || "inherit"}; font-weight: ${f.weight || "normal"};`}
+      >
+        {f.text}
+      </div>
+    ))}
+
+    <div id="block1" class="floating-item"><pre>{block1Text}</pre></div>
+    <div id="block2" class="floating-item"><pre>{block2Text}</pre></div>
+    <div id="block3" class="floating-item"><pre>{block3Text}</pre></div>
+    <div id="system-log" class="floating-item"><pre>{systemLogText}</pre></div>
+
+    <div class="cursor-follower"></div>
+
+    <script>
+      const blockElements = document.querySelectorAll('.floating-item');
+      const blocks = Array.from(blockElements).map(el => {
+        return {
+          el: el,
+          x: el.offsetLeft,
+          y: el.offsetTop,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          isDragging: false
+        };
+      });
+
+      blocks.forEach(block => {
+        let startX, startY, initialLeft, initialTop;
+
+        block.el.addEventListener('mousedown', (e) => {
+          block.isDragging = true;
+          startX = e.clientX; startY = e.clientY;
+          initialLeft = block.x; initialTop = block.y;
+          blocks.forEach(b => b.el.style.zIndex = "20");
+          block.el.style.zIndex = "1000";
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (!block.isDragging) return;
+          block.x = initialLeft + (e.clientX - startX);
+          block.y = initialTop + (e.clientY - startY);
+          block.el.style.left = `${block.x}px`;
+          block.el.style.top = `${block.y}px`;
+        });
+
+        document.addEventListener('mouseup', () => block.isDragging = false);
+      });
+
+      const canvas = document.getElementById('graph-canvas');
+      const ctx = canvas.getContext('2d');
+      const follower = document.querySelector('.cursor-follower');
+      const bgAsciiPre = document.getElementById('bg-ascii');
+      
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let followerX = mouseX, followerY = mouseY;
+      window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+
+      let bgCols = 0;
+      let bgRows = 0;
+
+      function resize() { 
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+        bgCols = Math.floor(window.innerWidth / 8.4) + 1;
+        bgRows = Math.floor(window.innerHeight / 16.8) + 1;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      const nodes = Array.from({ length: 30 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2
+      }));
+
+      const bgCharsArr = [' ', ' ', ' ', ' ', '.', '-', '~', '+', '=', 'x', 'X', '#'];
+      let time = 0;
+      let frameCount = 0;
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        time += 0.02; 
+        frameCount++;
+        
+        if (frameCount % 3 === 0) {
+          let bgStr = '';
+          for (let y = 0; y < bgRows; y++) {
+            for (let x = 0; x < bgCols; x++) {
+              const val = (Math.sin(x * 0.04 + y * 0.08 + time) + Math.cos(x * 0.06 - time * 0.5)) / 2;
+              const normalized = (val + 1) / 2; 
+              const charIndex = Math.floor(normalized * (bgCharsArr.length - 1));
+              const safeIndex = Math.max(0, Math.min(bgCharsArr.length - 1, charIndex));
+              bgStr += bgCharsArr[safeIndex];
+            }
+            bgStr += '\n';
+          }
+          bgAsciiPre.textContent = bgStr;
+        }
+        
+        followerX += (mouseX - followerX) * 0.1;
+        followerY += (mouseY - followerY) * 0.1;
+        follower.style.left = `${followerX - 3}px`;
+        follower.style.top = `${followerY - 3}px`;
+
+        const windowNodes = [];
+        blocks.forEach(block => {
+          if (!block.isDragging) {
+            block.x += block.vx; block.y += block.vy;
+            if (block.x < 0) { block.x = 0; block.vx *= -1; } 
+            else if (block.x + block.el.offsetWidth > canvas.width) { block.x = canvas.width - block.el.offsetWidth; block.vx *= -1; }
+            if (block.y < 0) { block.y = 0; block.vy *= -1; } 
+            else if (block.y + block.el.offsetHeight > canvas.height) { block.y = canvas.height - block.el.offsetHeight; block.vy *= -1; }
+
+            block.el.style.left = `${block.x}px`;
+            block.el.style.top = `${block.y}px`;
+          }
+          windowNodes.push({ x: block.x + block.el.offsetWidth / 2, y: block.y + block.el.offsetHeight / 2, isWindow: true });
+        });
+
+        const allNodes = [...nodes, ...windowNodes, { x: followerX, y: followerY, isCursor: true }];
+
+        nodes.forEach(n => {
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+          if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+          
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 1.2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.fill();
+        });
+
+        allNodes.forEach((n1, i) => {
+          allNodes.slice(i + 1).forEach(n2 => {
+            const dx = n1.x - n2.x;
+            const dy = n1.y - n2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            const threshold = (n1.isWindow || n2.isWindow) ? 220 : 120;
+
+            if (dist < threshold) {
+              const opacity = 1 - (dist / threshold);
+              ctx.beginPath();
+              ctx.moveTo(n1.x, n1.y);
+              ctx.lineTo(n2.x, n2.y);
+              
+              ctx.strokeStyle = (n1.isWindow || n2.isWindow) 
+                ? `rgba(255, 255, 255, ${opacity * 0.9})`
+                : `rgba(255, 255, 255, ${opacity * 0.4})`;
+              ctx.lineWidth = (n1.isWindow || n2.isWindow) ? 2.5 : 1.0;
+              ctx.stroke();
+            }
+          });
+        });
+
+        requestAnimationFrame(animate);
+      }
+      animate();
+    </script>
+  </body>
+</html>
